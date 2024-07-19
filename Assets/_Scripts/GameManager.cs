@@ -8,7 +8,6 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    [SerializeField] GridManager gridManager;
     [SerializeField] Level currentLevel;
     [SerializeField] List<BlockSO> allBlocks;
 
@@ -31,11 +30,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         currentLevel = GenerateNewLevel();
-        StartCoroutine(currentLevel.StartLevel(scoreToBeatLevelText, gridManager.TileList));
-    }
-    void Update()
-    {
-
+        StartCoroutine(currentLevel.StartLevel(scoreToBeatLevelText, GridManager.instance.TileList));
     }
     private Level GenerateNewLevel()
     {

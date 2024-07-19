@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Grid))]
 public class GridManager : MonoBehaviour
 {
+    public static GridManager instance;
 
+    [SerializeField] Canvas canvas;
     [SerializeField] GameObject tilePrefab;
     [SerializeField] GameObject tilesHolder;
     [SerializeField] int tileCountX,tileCountY;
@@ -15,9 +18,17 @@ public class GridManager : MonoBehaviour
     Grid grid;
 
     public List<GridTile> TileList { get => tileList; set => tileList = value; }
+    public int TileCountX { get => tileCountX; set => tileCountX = value; }
+    public int TileCountY { get => tileCountY; set => tileCountY = value; }
+    public Canvas Canvas { get => canvas; set => canvas = value; }
 
     private void Awake()
     {
+        if (instance == null)
+        {
+            instance = this;
+        }
+
         grid = GetComponent<Grid>();
         InitializeGrid();
     }
@@ -30,9 +41,9 @@ public class GridManager : MonoBehaviour
     }
     private void InitializeGrid()
     {
-        for(int i = 0; i < tileCountX; i++)
+        for(int i = 0; i < TileCountX; i++)
         {
-            for(int j= 0; j < tileCountY; j++)
+            for(int j= 0; j < TileCountY; j++)
             {
                 GameObject newGridElement = Instantiate(tilePrefab);
                 newGridElement.name = $"Tile {i},{j}";
@@ -45,5 +56,14 @@ public class GridManager : MonoBehaviour
             }        
         }       
     }
+    public GridTile GetGridTile(int x, int y)
+    {
+        if (tileList.Contains(TileList.FirstOrDefault(tile => tile.GridCellIndex.x == x && tile.GridCellIndex.y == y)))
+        {
+            return TileList.FirstOrDefault(tile => tile.GridCellIndex.x == x && tile.GridCellIndex.y == y);
+        }
+        else return null;        
+    }
+
 
 }

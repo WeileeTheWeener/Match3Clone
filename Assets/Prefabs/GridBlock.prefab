@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3997454340097263477}
   - component: {fileID: 3689691949293040631}
   - component: {fileID: -8145658767897549052}
+  - component: {fileID: 4029586384805537496}
   m_Layer: 5
   m_Name: GridBlock
   m_TagString: Untagged
@@ -89,3 +90,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockSO: {fileID: 11400000, guid: f8cc9c7735a99fb41865bee41ee2e0aa, type: 2}
+  OnBlockPositionChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!225 &4029586384805537496
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7683745917962390652}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

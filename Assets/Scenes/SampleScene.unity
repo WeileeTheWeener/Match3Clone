@@ -371,7 +371,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9a72b0ae772b24bac2e9d17fd03531, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridManager: {fileID: 754284459}
   currentLevel: {fileID: 0}
   allBlocks:
   - {fileID: 11400000, guid: f8cc9c7735a99fb41865bee41ee2e0aa, type: 2}
@@ -455,6 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa307f16065188c408c3f9b8281263f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canvas: {fileID: 1223174824}
   tilePrefab: {fileID: 4859320003734859113, guid: 876d846a55eb4d44592df51b177a5cdd, type: 3}
   tilesHolder: {fileID: 826699906}
   tileCountX: 6
@@ -663,8 +663,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 100
-  m_fontSizeBase: 100
+  m_fontSize: 80
+  m_fontSizeBase: 80
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -812,8 +812,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 100
-  m_fontSizeBase: 100
+  m_fontSize: 80
+  m_fontSizeBase: 80
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -915,7 +915,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1170, y: 2532}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96

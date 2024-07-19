@@ -48,15 +48,35 @@ public class Level : MonoBehaviour
     public IEnumerator StartLevel(TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
     {
         scoreToBeatLevelText.text = "Score To Beat : " + requiredScoreForCompletion.ToString();
+        BlockSO lastGeneratedBlockSO = null;
 
         foreach(GridTile gridTile in gridTileList)
         {
             GameObject newBlock = Instantiate(GameManager.instance.BlockPrefab);
             newBlock.transform.SetParent(gridTile.transform);
             Block newBlockComponent = newBlock.GetComponent<Block>();
-            newBlockComponent.BlockSO = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
+
+            BlockSO randomAvailableBlock = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
+
+            int tileIndexX = gridTile.GridCellIndex.x;
+            int tileIndexY = gridTile.GridCellIndex.y;
+
+            if (lastGeneratedBlockSO != null)
+            {
+                do
+                {
+                    randomAvailableBlock = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
+                }
+                while ((randomAvailableBlock.type == lastGeneratedBlockSO.type && randomAvailableBlock.color == lastGeneratedBlockSO.color) || 
+                (tileIndexX > 0 && randomAvailableBlock.type == GridManager.instance.GetGridTile(tileIndexX-1,tileIndexY).CurrentBlock.BlockSO.type &&
+                randomAvailableBlock.color == GridManager.instance.GetGridTile(tileIndexX - 1, tileIndexY).CurrentBlock.BlockSO.color));
+            }
+
+            newBlockComponent.BlockSO = randomAvailableBlock;
+            lastGeneratedBlockSO = newBlockComponent.BlockSO;
+
             gridTile.CurrentBlock = newBlockComponent;
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(0.1f);
             
         }
     
