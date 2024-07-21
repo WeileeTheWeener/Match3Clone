@@ -21,6 +21,7 @@ public class GridManager : MonoBehaviour
     public int TileCountX { get => tileCountX; set => tileCountX = value; }
     public int TileCountY { get => tileCountY; set => tileCountY = value; }
     public Canvas Canvas { get => canvas; set => canvas = value; }
+    public GameObject TilesHolder { get => tilesHolder; set => tilesHolder = value; }
 
     private void Awake()
     {
@@ -48,7 +49,7 @@ public class GridManager : MonoBehaviour
                 GameObject newGridElement = Instantiate(tilePrefab);
                 newGridElement.name = $"Tile {i},{j}";
                 Vector3 gridPos = grid.GetCellCenterWorld(new Vector3Int(i,j,0));
-                newGridElement.transform.SetParent(tilesHolder.transform);
+                newGridElement.transform.SetParent(TilesHolder.transform);
                 newGridElement.transform.position = gridPos;
                 GridTile newElementsGridTile = newGridElement.GetComponent<GridTile>();
                 newElementsGridTile.GridCellIndex = grid.WorldToCell(gridPos);
@@ -63,6 +64,36 @@ public class GridManager : MonoBehaviour
             return TileList.FirstOrDefault(tile => tile.GridCellIndex.x == x && tile.GridCellIndex.y == y);
         }
         else return null;        
+    }
+    public List<GridTile> GetTilesInRow(int rowIndex)
+    {
+        List<GridTile> rowTileList = new List<GridTile>();
+
+        foreach (GridTile tile in TileList)
+        {
+            if(tile.GridCellIndex.x == rowIndex)
+            {
+                rowTileList.Add(tile);
+            }       
+        }
+        return rowTileList;
+    }
+    public List<GridTile> GetTilesInColumn(int columnIndex)
+    {
+        List<GridTile> columnTileList = new List<GridTile>();
+
+        foreach (GridTile tile in TileList)
+        {
+            if (tile.GridCellIndex.y == columnIndex)
+            {
+                columnTileList.Add(tile);
+            }
+        }
+        return columnTileList;
+    }
+    public GridTile GetTileWithBlock(Block block)
+    {
+        return TileList.Where(tile => tile.CurrentBlock == block).FirstOrDefault();
     }
 
 

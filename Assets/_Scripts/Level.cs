@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,35 +20,48 @@ public class Level : MonoBehaviour
 
     public void SetProperties(int requiredScoreForCompletion,List<BlockSO> availableBlocks)
     {
+        currentScore = 0;
         this.requiredScoreForCompletion = requiredScoreForCompletion;
         this.availableBlocks = availableBlocks;
     }
     public void SetProperties(int requiredScoreForCompletion, List<BlockSO> availableBlocks, float timeLimit,TMP_Text scoreToBeatLevelText)
     {
+        currentScore = 0;
         this.requiredScoreForCompletion = requiredScoreForCompletion;
         this.availableBlocks = availableBlocks;
         this.timeLimit = timeLimit;
     }
-    public void AddScore(int score,TMP_Text currentScoreText)
+    public void AddScore(int scoreToAdd, TMP_Text currentScoreText, float tweenDuration)
     {
-        currentScore += score;
-        currentScoreText.text = "Score : " + score.ToString();
+        int oldScore = currentScore;
+        int newScore = currentScore + scoreToAdd;
 
-        if(currentScore >= requiredScoreForCompletion)
+        DOTween.To(() => oldScore, x =>
         {
-            EndLevel();
-        }
+            oldScore = x;
+            currentScoreText.text = "Score : " + oldScore.ToString();
+        }, newScore, tweenDuration).OnComplete(() =>
+        {
+            currentScore = newScore;
 
-        OnScoreAdded.Invoke();
+            if (currentScore >= requiredScoreForCompletion)
+            {
+                EndLevel();
+            }
+
+            OnScoreAdded.Invoke();
+        });
     }
     public void EndLevel()
     {
         Debug.Log("You beat the level");
         OnLevelEnded.Invoke();
     }
-    public IEnumerator StartLevel(TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
+    public IEnumerator StartLevel(TMP_Text currentScoreText, TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
     {
         scoreToBeatLevelText.text = "Score To Beat : " + requiredScoreForCompletion.ToString();
+        currentScoreText.text = "Score : " + currentScore.ToString();
+
         BlockSO lastGeneratedBlockSO = null;
 
         foreach(GridTile gridTile in gridTileList)
@@ -68,16 +82,16 @@ public class Level : MonoBehaviour
                     randomAvailableBlock = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
                 }
                 while ((randomAvailableBlock.type == lastGeneratedBlockSO.type && randomAvailableBlock.color == lastGeneratedBlockSO.color) || 
-                (tileIndexX > 0 && randomAvailableBlock.type == GridManager.instance.GetGridTile(tileIndexX-1,tileIndexY).CurrentBlock.BlockSO.type &&
-                randomAvailableBlock.color == GridManager.instance.GetGridTile(tileIndexX - 1, tileIndexY).CurrentBlock.BlockSO.color));
+                (tileIndexX > 0 && randomAvailableBlock == GridManager.instance.GetGridTile(tileIndexX - 1,tileIndexY).CurrentBlock.BlockSO));
             }
 
             newBlockComponent.BlockSO = randomAvailableBlock;
             lastGeneratedBlockSO = newBlockComponent.BlockSO;
 
             gridTile.CurrentBlock = newBlockComponent;
-            yield return new WaitForSeconds(0.1f);
-            
+
+            yield return new WaitForSeconds(0.05f);
+           
         }
     
     }

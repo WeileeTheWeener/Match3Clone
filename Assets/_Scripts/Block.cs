@@ -1,28 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class Block : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class Block : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+
     [SerializeField] BlockSO blockSO;
 
     Image image;
     CanvasGroup canvasGroup;
 
-    private Vector2 startDragPosition;
-    private Vector2 currentDragPosition;
-    private Vector2 dragDirection;
+    Vector2 startDragPosition;
+    Vector2 currentDragPosition;
+    Vector2 dragDirection;
 
-    public UnityEvent OnBlockPositionChanged;
-
-    private GridTile currentTile;
-    private GridTile targetTile;
-
-    private bool isSwipeDetected;
-    public float swipeThreshold = 50f;
+    bool isSwipeDetected;
+    float swipeThreshold = 50f;
 
     public BlockSO BlockSO { get => blockSO; set => blockSO = value; }
 
@@ -30,7 +25,6 @@ public class Block : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDr
     {
         image = GetComponent<Image>();
         canvasGroup = GetComponent<CanvasGroup>();
-        currentTile = GetComponentInParent<GridTile>();
 
         image.sprite = BlockSO.sprite;
 
@@ -55,20 +49,16 @@ public class Block : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDr
     }
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //Debug.Log("on begin drag " + eventData.pointerClick.gameObject.name, this);
-        startDragPosition = eventData.pointerClick.gameObject.transform.position;
-        currentTile = GetComponentInParent<GridTile>();
+        if (GameManager.instance.IsSwapInProgress) return;
+
+        startDragPosition = eventData.pointerDrag.gameObject.transform.position;
         canvasGroup.blocksRaycasts = false;
-        targetTile = null;
         isSwipeDetected = false;
-    }
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        //Debug.Log("cliked on " + eventData.pointerClick.gameObject.name, this);
     }
     void IDragHandler.OnDrag(PointerEventData eventData)
     {
-        //Debug.Log("on drag " + eventData.pointerClick.gameObject.name, this);
+        if (GameManager.instance.IsSwapInProgress) return;
+
         currentDragPosition = eventData.position;
         dragDirection = (currentDragPosition - startDragPosition).normalized;
 
@@ -99,56 +89,21 @@ public class Block : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDr
                 }
             }
 
-            Debug.Log("Swipe Direction: " + maxDirection + " with value: " + maxValue);
+            //Debug.Log("Swipe Direction: " + maxDirection + " with value: " + maxValue);
 
-            switch (maxDirection)
-            {
-                case "Up":
-                    targetTile = GridManager.instance.GetGridTile(currentTile.GridCellIndex.x, currentTile.GridCellIndex.y + 1);
-                    break;
-                case "Down":
-                    targetTile = GridManager.instance.GetGridTile(currentTile.GridCellIndex.x, currentTile.GridCellIndex.y - 1);
-                    break;
-                case "Right":
-                    targetTile = GridManager.instance.GetGridTile(currentTile.GridCellIndex.x + 1, currentTile.GridCellIndex.y);
-                    break;
-                case "Left":
-                    targetTile = GridManager.instance.GetGridTile(currentTile.GridCellIndex.x - 1, currentTile.GridCellIndex.y);
-                    break;
-            }
+            Block TargetBlock = GameManager.instance.GetTargetBlockWithDirection(GridManager.instance.GetTileWithBlock(this), maxDirection);
 
-            if (targetTile != null)
+            if (TargetBlock != null)
             {
-                //HighlightGridTile(targetTile);
                 isSwipeDetected = true;
-                SwapBlocks();
+                GameManager.instance.SwapBlocksWithAnimation(this, TargetBlock);
             }
         }
     }
-    private void HighlightGridTile(GridTile tile)
-    {
-        tile.GetComponent<Image>().color = Color.red;
-    }
-    private void SwapBlocks()
-    {
-        Block currentBlock = currentTile.CurrentBlock;
-        Block targetBlock = targetTile.CurrentBlock;
-
-        currentTile.CurrentBlock = targetBlock;
-        targetTile.CurrentBlock = currentBlock;
-
-        targetBlock.transform.SetParent(currentTile.transform);
-        targetBlock.transform.localPosition = Vector3.zero;
-
-        currentBlock.transform.SetParent(targetTile.transform);
-        currentBlock.transform.localPosition = Vector3.zero;
-    }
     public void OnEndDrag(PointerEventData eventData)
     {
-        //Debug.Log("on end drag " + eventData.pointerClick.gameObject.name, this);
         currentDragPosition = Vector2.zero;
         canvasGroup.blocksRaycasts = true;
-        targetTile = null;
     }
     private void OnDrawGizmos()
     {

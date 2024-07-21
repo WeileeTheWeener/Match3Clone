@@ -378,10 +378,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8f11e7cc9efc0bf4c8847717636cc16d, type: 2}
   - {fileID: 11400000, guid: b13cbea684625c849b70aeb3a618aace, type: 2}
   - {fileID: 11400000, guid: 9cf607b83550e314984fcb38866859d9, type: 2}
+  blockSwapDuration: 0.5
+  isSwapInProgress: 0
   blockPrefab: {fileID: 7683745917962390652, guid: 488998d004363de4281997279e609fab, type: 3}
   levelPrefab: {fileID: 7644029504718982509, guid: bf89e4cfa8e9b7d498fc63131e722873, type: 3}
   currentScoreText: {fileID: 974103844}
   scoreToBeatLevelText: {fileID: 1209355330}
+  OnBlocksSwapped:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &672205746
 Transform:
   m_ObjectHideFlags: 0
