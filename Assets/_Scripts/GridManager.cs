@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 [RequireComponent(typeof(Grid))]
 public class GridManager : MonoBehaviour

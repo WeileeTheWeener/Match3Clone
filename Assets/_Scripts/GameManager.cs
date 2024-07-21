@@ -1,8 +1,6 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -98,6 +96,7 @@ public class GameManager : MonoBehaviour
                 secondTweenCompleted = true;
             });
 
+        OnBlocksSwapped.Invoke();
         StartCoroutine(WaitForSwappingToEnd(firstBlocksTile, secondBlocksTile));
     }
 
@@ -107,10 +106,9 @@ public class GameManager : MonoBehaviour
 
         IsSwapInProgress = false;
 
-        bool firstTilesMatched = CheckForMatchingBlocks(firstTile.GridCellIndex.x, firstTile.GridCellIndex.y);
-        bool secondTilesMatched = CheckForMatchingBlocks(secondTile.GridCellIndex.x, secondTile.GridCellIndex.y);
+        bool tilesMatched = CheckForMatchingBlocks();
 
-        if (!firstTilesMatched && !secondTilesMatched)
+        if (!tilesMatched)
         {
             if (!retrySwap)
             {
@@ -153,30 +151,20 @@ public class GameManager : MonoBehaviour
         }
         else return null;
     }
-    public bool CheckForMatchingBlocks(int rowIndex, int columnIndex)
+    public bool CheckForMatchingBlocks()
     {
-        List<GridTile> rowTiles = GridManager.instance.GetTilesInRow(rowIndex);
-        List<GridTile> columnTiles = GridManager.instance.GetTilesInColumn(columnIndex);
+        HashSet<GridTile> matchedTiles = GetConsecutiveMatchingTiles(GridManager.instance.TileList);
 
-        List<GridTile> matchedRowTiles = GetConsecutiveMatchingTiles(rowTiles);
-        List<GridTile> matchedColumnTiles = GetConsecutiveMatchingTiles(columnTiles);
-
-        if(matchedRowTiles.Count > 0 || matchedColumnTiles.Count > 0)
+        if(matchedTiles.Count > 0)
         {
-            StartCoroutine(DestroyBlocksWithAnimation(matchedRowTiles));
-            StartCoroutine(DestroyBlocksWithAnimation(matchedColumnTiles));
+            StartCoroutine(DestroyBlocksWithAnimation(matchedTiles));
+            currentLevel.AddScore(matchedTiles.Count * 1, currentScoreText, 0.2f);
 
-            /*foreach (var tile in matchedRowTiles)
+            foreach (var tile in matchedTiles)
             {
-                //tile.GetComponent<Image>().color = Color.red;
+                tile.GetComponent<Image>().color = Color.red;
             }
-
-            foreach (var tile in matchedColumnTiles)
-            {
-                //tile.GetComponent<Image>().color = Color.blue;
-            }*/
-
-            OnBlocksSwapped.Invoke();
+            
             return true;
         }
         else
@@ -185,7 +173,7 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    private IEnumerator DestroyBlocksWithAnimation(List<GridTile> tiles)
+    private IEnumerator DestroyBlocksWithAnimation(HashSet<GridTile> tiles)
     {
         foreach (GridTile tile in tiles)
         {
@@ -203,37 +191,53 @@ public class GameManager : MonoBehaviour
                 yield return new WaitForSeconds(0.1f);
             }
         }
-
-        currentLevel.AddScore(5, currentScoreText,0.1f);
-
     }
-    private List<GridTile> GetConsecutiveMatchingTiles(List<GridTile> tiles)
+    private HashSet<GridTile> GetConsecutiveMatchingTiles(List<GridTile> tiles)
     {
-        List<GridTile> matchedTiles = new List<GridTile>();
-        List<GridTile> tempMatchedTiles = new List<GridTile>();
+        HashSet<GridTile> matchingTiles = new HashSet<GridTile>();
 
-        for (int i = 0; i < tiles.Count; i++)
+        // Check horizontal matches
+        for (int y = 0; y < GridManager.instance.TileCountY; y++)
         {
-            if (i == 0 || tiles[i].CurrentBlock.BlockSO == tiles[i - 1].CurrentBlock.BlockSO)
+            for (int x = 0; x < GridManager.instance.TileCountX - 2; x++)
             {
-                tempMatchedTiles.Add(tiles[i]);
-            }
-            else
-            {
-                if (tempMatchedTiles.Count >= 3)
+                GridTile tileA = GridManager.instance.GetGridTile(x, y);
+                GridTile tileB = GridManager.instance.GetGridTile(x + 1, y);
+                GridTile tileC = GridManager.instance.GetGridTile(x + 2, y);
+
+                if (tileA.CurrentBlock != null && tileB.CurrentBlock != null && tileC.CurrentBlock != null)
                 {
-                    matchedTiles.AddRange(tempMatchedTiles);
+                    if (tileA.CurrentBlock.BlockSO == tileB.CurrentBlock.BlockSO && tileB.CurrentBlock.BlockSO == tileC.CurrentBlock.BlockSO)
+                    {
+                        matchingTiles.Add(tileA);
+                        matchingTiles.Add(tileB);
+                        matchingTiles.Add(tileC);
+                    }
                 }
-                tempMatchedTiles.Clear();
-                tempMatchedTiles.Add(tiles[i]);
             }
         }
 
-        if (tempMatchedTiles.Count >= 3)
+        // Check vertical matches
+        for (int x = 0; x < GridManager.instance.TileCountX; x++)
         {
-            matchedTiles.AddRange(tempMatchedTiles);
+            for (int y = 0; y < GridManager.instance.TileCountY - 2; y++)
+            {
+                GridTile tileA = GridManager.instance.GetGridTile(x, y);
+                GridTile tileB = GridManager.instance.GetGridTile(x, y + 1);
+                GridTile tileC = GridManager.instance.GetGridTile(x, y + 2);
+
+                if (tileA.CurrentBlock != null && tileB.CurrentBlock != null && tileC.CurrentBlock != null)
+                {
+                    if (tileA.CurrentBlock.BlockSO == tileB.CurrentBlock.BlockSO && tileB.CurrentBlock.BlockSO == tileC.CurrentBlock.BlockSO)
+                    {
+                        matchingTiles.Add(tileA);
+                        matchingTiles.Add(tileB);
+                        matchingTiles.Add(tileC);
+                    }
+                }
+            }
         }
 
-        return matchedTiles;
+        return matchingTiles;
     }
 }
