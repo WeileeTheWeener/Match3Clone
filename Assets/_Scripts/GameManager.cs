@@ -13,8 +13,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] Level currentLevel;
     [SerializeField] List<BlockSO> allBlocks;
 
-    [Header("Block Swapping")]
+    [Header("Block Properties")]
     [SerializeField] float blockSwapDuration;
+    [SerializeField] float blockFallDuration;
     [SerializeField] bool isSwapInProgress;
 
     bool firstTweenCompleted = false;
@@ -45,7 +46,7 @@ public class GameManager : MonoBehaviour
     {
         currentLevel = GenerateNewLevel();
 
-        StartCoroutine(currentLevel.StartLevel(currentScoreText,scoreToBeatLevelText, GridManager.instance.TileList));      
+        currentLevel.StartLevel(currentScoreText,scoreToBeatLevelText, GridManager.instance.TileList);      
     }
     private Level GenerateNewLevel()
     {
@@ -153,16 +154,17 @@ public class GameManager : MonoBehaviour
     }
     public bool CheckForMatchingBlocks()
     {
-        HashSet<GridTile> matchedTiles = GetConsecutiveMatchingTiles(GridManager.instance.TileList);
+        HashSet<GridTile> matchedTiles = GetConsecutiveMatchingTiles();
 
         if(matchedTiles.Count > 0)
         {
             StartCoroutine(DestroyBlocksWithAnimation(matchedTiles));
             currentLevel.AddScore(matchedTiles.Count * 1, currentScoreText, 0.2f);
 
+
             foreach (var tile in matchedTiles)
             {
-                tile.GetComponent<Image>().color = Color.red;
+                //tile.GetComponent<Image>().color = Color.red;
             }
             
             return true;
@@ -186,13 +188,42 @@ public class GameManager : MonoBehaviour
                     canvasGroup.DOFade(0f, 0.2f).OnComplete(() =>
                     {
                         Destroy(tile.CurrentBlock.gameObject);
+                        tile.CurrentBlock = null;
                     });
                 }
                 yield return new WaitForSeconds(0.1f);
             }
         }
+
+        yield return new WaitForSeconds(0.1f);
+        StartCoroutine(SpawnNewBlocks(tiles));
     }
-    private HashSet<GridTile> GetConsecutiveMatchingTiles(List<GridTile> tiles)
+    private IEnumerator SpawnNewBlocks(HashSet<GridTile> tiles)
+    {
+        foreach (GridTile tile in tiles)
+        {
+            if (tile.CurrentBlock == null)
+            {
+                Block newBlock = currentLevel.GenerateRandomBlockForLevel(tile);
+
+                CanvasGroup canvasGroup = newBlock.GetComponent<CanvasGroup>();
+
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 0f;
+
+                    canvasGroup.DOFade(1, 0.2f).OnComplete(() =>
+                    {
+                        tile.CurrentBlock = newBlock;
+                    });
+                }
+            }
+                yield return new WaitForSeconds(0.1f);
+        }
+
+        CheckForMatchingBlocks();
+    }
+    private HashSet<GridTile> GetConsecutiveMatchingTiles()
     {
         HashSet<GridTile> matchingTiles = new HashSet<GridTile>();
 

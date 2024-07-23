@@ -55,14 +55,18 @@ public class Level : MonoBehaviour
         Debug.Log("You beat the level");
         OnLevelEnded.Invoke();
     }
-    public IEnumerator StartLevel(TMP_Text currentScoreText, TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
+    public void StartLevel(TMP_Text currentScoreText, TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
     {
         scoreToBeatLevelText.text = "Score To Beat : " + requiredScoreForCompletion.ToString();
         currentScoreText.text = "Score : " + currentScore.ToString();
 
+        StartCoroutine(GenerateNonMatchingBlocks(gridTileList));
+    }
+    private IEnumerator GenerateNonMatchingBlocks(List<GridTile> gridTileList)
+    {
         BlockSO lastGeneratedBlockSO = null;
 
-        foreach(GridTile gridTile in gridTileList)
+        foreach (GridTile gridTile in gridTileList)
         {
             GameObject newBlock = Instantiate(GameManager.instance.BlockPrefab);
             newBlock.transform.SetParent(gridTile.transform);
@@ -79,8 +83,8 @@ public class Level : MonoBehaviour
                 {
                     randomAvailableBlock = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
                 }
-                while ((randomAvailableBlock.type == lastGeneratedBlockSO.type && randomAvailableBlock.color == lastGeneratedBlockSO.color) || 
-                (tileIndexX > 0 && randomAvailableBlock == GridManager.instance.GetGridTile(tileIndexX - 1,tileIndexY).CurrentBlock.BlockSO));
+                while ((randomAvailableBlock.type == lastGeneratedBlockSO.type && randomAvailableBlock.color == lastGeneratedBlockSO.color) ||
+                (tileIndexX > 0 && randomAvailableBlock == GridManager.instance.GetGridTile(tileIndexX - 1, tileIndexY).CurrentBlock.BlockSO));
             }
 
             newBlockComponent.BlockSO = randomAvailableBlock;
@@ -89,9 +93,18 @@ public class Level : MonoBehaviour
             gridTile.CurrentBlock = newBlockComponent;
 
             yield return new WaitForSeconds(0.05f);
-           
+
         }
-    
+    }
+    public Block GenerateRandomBlockForLevel(GridTile tile)
+    {
+        GameObject newBlock = Instantiate(GameManager.instance.BlockPrefab);
+        newBlock.transform.SetParent(tile.transform);
+        Block newBlockComponent = newBlock.GetComponent<Block>();
+        tile.CurrentBlock = newBlockComponent;
+        BlockSO randomAvailableBlock = availableBlocks[UnityEngine.Random.Range(0, availableBlocks.Count)];
+        newBlockComponent.BlockSO = randomAvailableBlock;
+        return newBlockComponent;
     }
 
 }

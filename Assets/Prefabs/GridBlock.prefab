@@ -90,10 +90,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blockSO: {fileID: 11400000, guid: f8cc9c7735a99fb41865bee41ee2e0aa, type: 2}
-  blockSwapDuration: 0.5
-  OnBlockPositionChanged:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!225 &4029586384805537496
 CanvasGroup:
   m_ObjectHideFlags: 0
