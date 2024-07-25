@@ -7,6 +7,7 @@ using UnityEngine.Events;
 
 public class Level : MonoBehaviour
 {
+    [SerializeField] int levelIndex;
     [SerializeField] int currentScore;
     [SerializeField] int requiredScoreForCompletion;
     [SerializeField] float timeLimit;
@@ -15,6 +16,8 @@ public class Level : MonoBehaviour
 
     public UnityEvent OnScoreAdded;
     public UnityEvent OnLevelEnded;
+
+    public int LevelIndex { get => levelIndex; set => levelIndex = value; }
 
     public void SetProperties(int requiredScoreForCompletion,List<BlockSO> availableBlocks)
     {
@@ -44,23 +47,26 @@ public class Level : MonoBehaviour
 
             if (currentScore >= requiredScoreForCompletion)
             {
-                EndLevel();
+                LevelCompleted();
             }
 
             OnScoreAdded.Invoke();
         });
     }
-    public void EndLevel()
+    public void LevelCompleted()
     {
         Debug.Log("You beat the level");
+        GameManager.instance.LastLevelIndex = GameManager.instance.CurrentLevel.LevelIndex;
+        GameManager.instance.LevelCompletedPanel.SetActive(true);
         OnLevelEnded.Invoke();
     }
-    public void StartLevel(TMP_Text currentScoreText, TMP_Text scoreToBeatLevelText,List<GridTile> gridTileList)
+    public void StartLevel(TMP_Text levelIndexText,TMP_Text currentScoreText, TMP_Text scoreToBeatLevelText)
     {
         scoreToBeatLevelText.text = "Score To Beat : " + requiredScoreForCompletion.ToString();
         currentScoreText.text = "Score : " + currentScore.ToString();
+        levelIndexText.text = "Level : " + levelIndex.ToString();
 
-        StartCoroutine(GenerateNonMatchingBlocks(gridTileList));
+        StartCoroutine(GenerateNonMatchingBlocks(GridManager.instance.TileList));
     }
     private IEnumerator GenerateNonMatchingBlocks(List<GridTile> gridTileList)
     {

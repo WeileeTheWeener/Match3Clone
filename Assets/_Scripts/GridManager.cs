@@ -55,6 +55,16 @@ public class GridManager : MonoBehaviour
             }        
         }       
     }
+    public void CleanAllBlocksFromTheGrid()
+    {
+        foreach(GridTile tile in TileList)
+        {
+            if(tile.CurrentBlock != null)
+            {
+                Destroy(tile.CurrentBlock.gameObject);
+            }
+        }
+    }
     public GridTile GetGridTile(int x, int y)
     {
         if (tileList.Contains(TileList.FirstOrDefault(tile => tile.GridCellIndex.x == x && tile.GridCellIndex.y == y)))
@@ -62,32 +72,6 @@ public class GridManager : MonoBehaviour
             return TileList.FirstOrDefault(tile => tile.GridCellIndex.x == x && tile.GridCellIndex.y == y);
         }
         else return null;        
-    }
-    public List<GridTile> GetTilesInRow(int rowIndex)
-    {
-        List<GridTile> rowTileList = new List<GridTile>();
-
-        foreach (GridTile tile in TileList)
-        {
-            if(tile.GridCellIndex.x == rowIndex)
-            {
-                rowTileList.Add(tile);
-            }       
-        }
-        return rowTileList;
-    }
-    public List<GridTile> GetTilesInColumn(int columnIndex)
-    {
-        List<GridTile> columnTileList = new List<GridTile>();
-
-        foreach (GridTile tile in TileList)
-        {
-            if (tile.GridCellIndex.y == columnIndex)
-            {
-                columnTileList.Add(tile);
-            }
-        }
-        return columnTileList;
     }
     public GridTile GetTileWithBlock(Block block)
     {

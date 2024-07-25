@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -11,11 +12,13 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     [SerializeField] Level currentLevel;
+    [SerializeField] int lastLevelIndex;
     [SerializeField] List<BlockSO> allBlocks;
 
     [Header("Block Properties")]
     [SerializeField] float blockSwapDuration;
-    [SerializeField] float blockFallDuration;
+    [SerializeField] float blockSpawningInterval;
+    [SerializeField] float blockDestructionInterval;
     [SerializeField] bool isSwapInProgress;
 
     bool firstTweenCompleted = false;
@@ -29,10 +32,17 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] TMP_Text currentScoreText;
     [SerializeField] TMP_Text scoreToBeatLevelText;
+    [SerializeField] TMP_Text levelIndexText;
+    [SerializeField] GameObject menuScreen;
+    [SerializeField] GameObject gameScreen;
+    [SerializeField] GameObject levelCompletedPanel;
 
     public UnityEvent OnBlocksSwapped;
     public GameObject BlockPrefab { get => blockPrefab; set => blockPrefab = value; }
     public bool IsSwapInProgress { get => isSwapInProgress; set => isSwapInProgress = value; }
+    public int LastLevelIndex { get => lastLevelIndex; set => lastLevelIndex = value; }
+    public Level CurrentLevel { get => currentLevel; set => currentLevel = value; }
+    public GameObject LevelCompletedPanel { get => levelCompletedPanel; set => levelCompletedPanel = value; }
 
     private void Awake()
     {
@@ -42,22 +52,42 @@ public class GameManager : MonoBehaviour
         }
 
     }
-    private void Start()
+    public void StartGame()
     {
-        currentLevel = GenerateNewLevel();
+        menuScreen.SetActive(false);
+        gameScreen.SetActive(true);
 
-        currentLevel.StartLevel(currentScoreText,scoreToBeatLevelText, GridManager.instance.TileList);      
+        CurrentLevel = GenerateNewLevel(1);
+        CurrentLevel.StartLevel(levelIndexText, currentScoreText, scoreToBeatLevelText);
     }
-    private Level GenerateNewLevel()
+    public void QuitGame()
+    {
+        Application.Quit();
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #endif
+    }
+    private Level GenerateNewLevel(int levelIndex)
     {
         GameObject newLevel = Instantiate(levelPrefab);
         Level level = newLevel.GetComponent<Level>();
+        level.LevelIndex = levelIndex;
 
-        int randomScoreRequirement = Random.Range(50, 100);
+        int randomScoreRequirement = Random.Range(10, 40);
 
         level.SetProperties(randomScoreRequirement,allBlocks);
         
         return level;
+    }
+    public void StartNextLevel()
+    {
+        levelCompletedPanel.SetActive(false);
+
+        Destroy(currentLevel.gameObject);
+        GridManager.instance.CleanAllBlocksFromTheGrid();
+
+        CurrentLevel = GenerateNewLevel(lastLevelIndex + 1);
+        CurrentLevel.StartLevel(levelIndexText, currentScoreText, scoreToBeatLevelText);
     }
     public void SwapBlocksWithAnimation(Block firstBlock, Block secondBlock)
     {
@@ -155,11 +185,11 @@ public class GameManager : MonoBehaviour
     public bool CheckForMatchingBlocks()
     {
         HashSet<GridTile> matchedTiles = GetConsecutiveMatchingTiles();
-
+ 
         if(matchedTiles.Count > 0)
         {
             StartCoroutine(DestroyBlocksWithAnimation(matchedTiles));
-            currentLevel.AddScore(matchedTiles.Count * 1, currentScoreText, 0.2f);
+            CurrentLevel.AddScore(matchedTiles.Count * 1, currentScoreText, 0.2f);
 
 
             foreach (var tile in matchedTiles)
@@ -191,7 +221,7 @@ public class GameManager : MonoBehaviour
                         tile.CurrentBlock = null;
                     });
                 }
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(blockDestructionInterval);
             }
         }
 
@@ -204,7 +234,7 @@ public class GameManager : MonoBehaviour
         {
             if (tile.CurrentBlock == null)
             {
-                Block newBlock = currentLevel.GenerateRandomBlockForLevel(tile);
+                Block newBlock = CurrentLevel.GenerateRandomBlockForLevel(tile);
 
                 CanvasGroup canvasGroup = newBlock.GetComponent<CanvasGroup>();
 
@@ -218,7 +248,7 @@ public class GameManager : MonoBehaviour
                     });
                 }
             }
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(blockSpawningInterval);
         }
 
         CheckForMatchingBlocks();
